@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-builder.Services.AddDbContext<Lab09_EmployesContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Lab9")));
+builder.Services.AddDbContext<Lab09_EmployesContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Lab9LinuxHome")));
 
 var app = builder.Build();
 
