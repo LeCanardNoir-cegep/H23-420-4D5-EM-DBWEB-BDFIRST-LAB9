@@ -125,13 +125,20 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var artiste = await _context.Artistes.FindAsync(id);
+            Artiste artiste = await _context.Artistes.Where( a => a.ArtisteId == id ).Include( a => a.Employe ).FirstOrDefaultAsync();
+
+            ArtisteEmployeViewModel vm = new ArtisteEmployeViewModel
+            {
+                Artiste = artiste,
+                Employe = artiste.Employe
+            };
+
             if (artiste == null)
             {
                 return NotFound();
             }
-            ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId", artiste.EmployeId);
-            return View(artiste);
+            //ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId", artiste.EmployeId);
+            return View(vm);
         }
 
         // POST: Artistes/Edit/5
@@ -139,23 +146,33 @@ namespace WebApplication1.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ArtisteId,Specialite,EmployeId")] Artiste artiste)
+        public async Task<IActionResult> Edit(int id, [Bind("Artiste, Employe")] ArtisteEmployeViewModel artisteEmploye)
         {
-            if (id != artiste.ArtisteId)
+            if (id != artisteEmploye.Artiste.ArtisteId)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+
+            artisteEmploye.Artiste.Employe = artisteEmploye.Employe;
+            bool isValid = Validator.TryValidateObject(
+                artisteEmploye,
+                new ValidationContext(artisteEmploye),
+                new List<ValidationResult>(),
+                true
+                );
+
+            if (isValid)
             {
                 try
                 {
-                    _context.Update(artiste);
+                    _context.Artistes.Update(artisteEmploye.Artiste);
+                    _context.Employes.Update(artisteEmploye.Employe);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ArtisteExists(artiste.ArtisteId))
+                    if (!ArtisteExists(artisteEmploye.Artiste.ArtisteId))
                     {
                         return NotFound();
                     }
@@ -166,8 +183,8 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId", artiste.EmployeId);
-            return View(artiste);
+            //ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId", artiste.EmployeId);
+            return View(artisteEmploye);
         }
 
         // GET: Artistes/Delete/5
