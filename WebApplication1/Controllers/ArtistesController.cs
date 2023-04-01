@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using WebApplication1.Data;
 using WebApplication1.Models;
 
@@ -53,9 +55,16 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Artistes/Create
-        public IActionResult Create()
+        //public IActionResult Create()
+        //{
+        //    //ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId");
+        //    return View();
+        //}
+        public async Task<IActionResult> Create()
         {
-            ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId");
+            // Appel procédure stockée
+
+            //await _context.SaveChangesAsync();
             return View();
         }
 
@@ -64,16 +73,29 @@ namespace WebApplication1.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ArtisteId,Specialite,EmployeId")] Artiste artiste)
+        public async Task<IActionResult> Create([Bind("Artiste, Employe")] ArtisteEmployeViewModel artisteEmploye)
         {
-            if (ModelState.IsValid)
+            if( artisteEmploye  == null)
             {
-                _context.Add(artiste);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("Model vide", "Le model est vide");
+                return View(artisteEmploye);
             }
-            ViewData["EmployeId"] = new SelectList(_context.Employes, "EmployeId", "EmployeId", artiste.EmployeId);
-            return View(artiste);
+
+
+            string query = "EXEC Employes.USP_AjouterArtiste @Prenom, @Nom, @NoTel, @Courriel, @Specialite";
+            List<SqlParameter> param = new List<SqlParameter>
+                {
+                    new SqlParameter{ParameterName = "@Prenom", Value = artisteEmploye.Employe.Prenom},
+                    new SqlParameter{ParameterName = "@Nom", Value = artisteEmploye.Employe.Nom},
+                    new SqlParameter{ParameterName = "@NoTel", Value = artisteEmploye.Employe.NoTel},
+                    new SqlParameter{ParameterName = "@Courriel", Value = artisteEmploye.Employe.Courriel},
+                    new SqlParameter{ParameterName = "@Specialite", Value = artisteEmploye.Artiste.Specialite}
+                };
+
+            var result = _context.Employes.FromSqlRaw(query, param.ToArray());
+
+            await _context.SaveChangesAsync();
+            return View(artisteEmploye);
         }
 
         // GET: Artistes/Edit/5

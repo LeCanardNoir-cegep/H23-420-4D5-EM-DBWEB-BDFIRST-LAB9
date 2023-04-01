@@ -1,4 +1,4 @@
-﻿@model WebApplication1.Models.Artiste
+﻿@model WebApplication1.Models.ArtisteEmployeViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -14,13 +14,29 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Specialite" class="control-label"></label>
-                <input asp-for="Specialite" class="form-control" />
-                <span asp-validation-for="Specialite" class="text-danger"></span>
+                <label asp-for="Artiste.Specialite" class="control-label"></label>
+                <input asp-for="Artiste.Specialite" class="form-control" />
+                <span asp-validation-for="Artiste.Specialite" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="EmployeId" class="control-label"></label>
-                <select asp-for="EmployeId" class ="form-control" asp-items="ViewBag.EmployeId"></select>
+                <label asp-for="Employe.Prenom" class="control-label"></label>
+                <input asp-for="Employe.Prenom" class="form-control" />
+                <span asp-validation-for="Employe.Prenom" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employe.Nom" class="control-label"></label>
+                <input asp-for="Employe.Nom" class="form-control" />
+                <span asp-validation-for="Employe.Nom" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employe.NoTel" class="control-label"></label>
+                <input asp-for="Employe.NoTel" class="form-control" />
+                <span asp-validation-for="Employe.NoTel" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Employe.Courriel" class="control-label"></label>
+                <input asp-for="Employe.Courriel" class="form-control" />
+                <span asp-validation-for="Employe.Courriel" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
