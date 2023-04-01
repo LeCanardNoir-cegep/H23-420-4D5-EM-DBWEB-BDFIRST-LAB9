@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +67,7 @@ namespace WebApplication1.Controllers
             // Appel procédure stockée
 
             //await _context.SaveChangesAsync();
+            await Task.CompletedTask;
             return View();
         }
 
@@ -75,12 +78,27 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Artiste, Employe")] ArtisteEmployeViewModel artisteEmploye)
         {
-            if( artisteEmploye  == null)
+            //artisteEmploye.Artiste.Employe = artisteEmploye.Employe;
+            //artisteEmploye
+            //if( ModelState.IsValid)
+            //{
+            //    ModelState.AddModelError("Model vide", "Le model est vide");
+            //    return View(artisteEmploye);
+            //}
+
+            artisteEmploye.Artiste.Employe = artisteEmploye.Employe;
+            bool isValid = Validator.TryValidateObject(
+                artisteEmploye,
+                new ValidationContext(artisteEmploye),
+                new List<ValidationResult>(), 
+                true
+                );
+
+            if (!isValid)
             {
-                ModelState.AddModelError("Model vide", "Le model est vide");
+                ModelState.AddModelError("Error", "Une erreur s'est produite.");
                 return View(artisteEmploye);
             }
-
 
             string query = "EXEC Employes.USP_AjouterArtiste @Prenom, @Nom, @NoTel, @Courriel, @Specialite";
             List<SqlParameter> param = new List<SqlParameter>
@@ -92,7 +110,8 @@ namespace WebApplication1.Controllers
                     new SqlParameter{ParameterName = "@Specialite", Value = artisteEmploye.Artiste.Specialite}
                 };
 
-            var result = _context.Employes.FromSqlRaw(query, param.ToArray());
+
+            await _context.Database.ExecuteSqlRawAsync(query, param.ToArray());
 
             await _context.SaveChangesAsync();
             return View(artisteEmploye);
