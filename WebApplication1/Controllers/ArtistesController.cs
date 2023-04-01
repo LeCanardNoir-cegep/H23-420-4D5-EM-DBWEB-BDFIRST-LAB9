@@ -26,6 +26,13 @@ namespace WebApplication1.Controllers
             return View(await lab09_EmployesContext.ToListAsync());
         }
 
+        // GET: Artistes
+        public async Task<IActionResult> Index2()
+        {
+            IEnumerable< VwListeArtiste > artiste = await _context.VwListeArtistes.ToArrayAsync();
+            return View(artiste);
+        }
+
         // GET: Artistes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
