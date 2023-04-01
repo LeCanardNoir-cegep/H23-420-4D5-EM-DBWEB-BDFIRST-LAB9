@@ -37,6 +37,83 @@ namespace WebApplication1.Controllers
             return View(artiste);
         }
 
+        // GET: Artistes
+        public async Task<IActionResult> Query1()
+        {
+            IEnumerable<VwListeArtiste> artiste = await _context.VwListeArtistes.Where( a => a.DateEmbauche.Year == 2023 ).ToListAsync();
+            return View(artiste);
+        }
+
+        // GET: Artistes
+        public async Task<IActionResult> Query2()
+        {
+            IEnumerable<VwListeArtiste> artiste = await _context.VwListeArtistes.Where(a => a.Specialite == "modélisation 3D ").ToListAsync();
+            return View(artiste);
+        }
+
+        // GET: Artistes
+        public async Task<IActionResult> Query3()
+        {
+            IEnumerable<string> artiste = await _context.VwListeArtistes.OrderBy( o => o.Prenom ).Select( s => $"{s.Prenom} {s.Nom}"  ).ToListAsync();
+            return View(artiste);
+        }
+
+        // GET: Artistes
+        public async Task<IActionResult> Query4()
+        {
+            IEnumerable<ArtisteEmployeViewModel> artisteVM =    from a in _context.Artistes
+                                                                join e in _context.Employes
+                                                                on a.EmployeId equals e.EmployeId
+                                                                select new ArtisteEmployeViewModel { Artiste = a, Employe = e };
+
+            IEnumerable<ArtisteEmployeViewModel> artisteVM2 = await _context.Artistes.Join(
+                _context.Employes,                                                  // INNER JOIN
+                a => a.EmployeId, e => e.EmployeId,                                 // ON
+                (a,e) => new ArtisteEmployeViewModel { Artiste = a, Employe = e}    // SELECT
+                ).ToListAsync();
+
+            return View(artisteVM2);
+        }
+
+        // GET: Artistes
+        public async Task<IActionResult> Query5()
+        {
+            IEnumerable<NbSpecialiteViewModel> vm = from a in _context.Artistes
+                                                    group a.ArtisteId by a.Specialite into result
+                                                    select new NbSpecialiteViewModel { Specialite = result.Key, Nb = result.Count() };
+
+            IEnumerable<NbSpecialiteViewModel> vm2 = _context.Artistes.GroupBy( g => g.Specialite ).Select( s => new NbSpecialiteViewModel { Specialite = s.Key, Nb = s.Count() });
+
+            return View(vm2);
+        }
+
+        // GET: Artistes
+        public async Task<IActionResult> Query6()
+        {
+            //NOT GOOD: Les noms de specialités ayant le prlus grand nombre de lettre.
+            IEnumerable<NbSpecialiteViewModel> vm = _context.Artistes.GroupBy(g => g.Specialite).Select(s => new NbSpecialiteViewModel { Specialite = s.Key, Nb = s.Key.Length }).OrderByDescending(o => o.Nb).Take(2);
+
+            // Les deux spécialités dont la quantité moyenne de lettres dans le prénom des artistes est la plus grande ? 
+            IEnumerable<NbSpecialiteViewModel> vm2 = (from a in _context.Artistes
+                                                      join e in _context.Employes
+                                                      on a.EmployeId equals e.EmployeId
+                                                      group e by a.Specialite into result
+                                                      orderby result.Average(r => r.Prenom.Length) descending
+                                                      select new NbSpecialiteViewModel { Specialite = result.Key, Nb = (int)Math.Ceiling(result.Average(r => r.Prenom.Length)) }).Take(2);
+
+            IEnumerable<NbSpecialiteViewModel> vm3 = await _context.Artistes
+                .GroupBy(a => new { Specility = a.Specialite })
+                .OrderByDescending(s => s.Average(n => n.Employe.Prenom.Length))
+                .Select(g => new NbSpecialiteViewModel
+                {
+                    Specialite = g.Key.Specility,
+                    Nb = (int) Math.Ceiling(g.Average(n => n.Employe.Prenom.Length))
+                })
+                .Take(2).ToListAsync();
+
+            return View(vm3);
+        }
+
         // GET: Artistes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
